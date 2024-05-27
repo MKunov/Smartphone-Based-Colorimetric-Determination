@@ -1,0 +1,32 @@
+clearvars
+file = fullfile("oj8.JPG");
+
+img = imread(file);   %importing image and cropping
+black_RGB = RGB_pull(img);
+white_RGB = RGB_pull(img);
+grey_RGB = RGB_pull(img);
+
+x = [black_RGB' white_RGB' grey_RGB'];   %create x matrix of observed RGB values
+y = [0,255,46];   %fitting a second degree polynomial
+RGB_coef = [polyfit(x(1,:),y,2); polyfit(x(2,:),y,2); polyfit(x(3,:),y,2)]; % coefs for polyfit
+
+img_r = char(img(:,:,1)); img_g = char(img(:,:,2)); img_b = char(img(:,:,3)); % split original image
+
+new_r = RGB_coef(1,1).* img_r.^2 + RGB_coef(1,2).*img_r + RGB_coef(1,3); % back into quadratics
+new_g = RGB_coef(2,1).* img_g.^2 + RGB_coef(2,2).*img_g + RGB_coef(2,3);
+new_b = RGB_coef(3,1).* img_b.^2 + RGB_coef(3,2).*img_b + RGB_coef(3,3);
+
+new_r = uint8(rescale(new_r,0,255)); %rescale images to fit between 0 and 255
+new_g = uint8(rescale(new_g,0,255));
+new_b = uint8(rescale(new_b,0,255));
+
+new_r = imadjust(new_r); % imadjust to make it span all of 0 to 255
+new_g = imadjust(new_g);
+new_b = imadjust(new_b);
+
+new_img = cat(3,new_r,new_g,new_b); % final new image
+
+subplot(1,2,1)
+imshow(img); title("Original")
+subplot(1,2,2)
+imshow(new_img); title("Calibrated")
